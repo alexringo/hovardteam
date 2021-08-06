@@ -10,43 +10,48 @@
   </script>
 </head>
 <body>
-     <div id="my_pdf_viewer">
-        <div id="canvas_container">
-            <canvas id="pdf_renderer"></canvas>
-        </div>
-    </div>
+     <style>
+  #pdf-viewer {
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    overflow: auto;
+  }
 
-    <script>
-        var myState = {
-            pdf: null,
-            currentPage: 1,
-            zoom: 1
+  .pdf-page-canvas {
+    display: block;
+    margin: 5px auto;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+</style>
+
+<script>   
+    url = 'https://raw.githubusercontent.com/alexringo/hovardteam/main/CIPUTRA%20WORLD%20TAHAP3.PDF';
+    var thePdf = null;
+    var scale = 1;
+
+    PDFJS.getDocument(url).promise.then(function(pdf) {
+        thePdf = pdf;
+        viewer = document.getElementById('pdf-viewer');
+
+        for(page = 1; page <= pdf.numPages; page++) {
+          canvas = document.createElement("canvas");    
+          canvas.className = 'pdf-page-canvas';         
+          viewer.appendChild(canvas);            
+          renderPage(page, canvas);
         }
-     
-        pdfjsLib.getDocument('https://raw.githubusercontent.com/alexringo/hovardteam/main/CIPUTRA%20WORLD%20TAHAP3.PDF').then((pdf) => {
-     
-            myState.pdf = pdf;
-            render();
+    });
 
-        });
+    function renderPage(pageNumber, canvas) {
+        thePdf.getPage(pageNumber).then(function(page) {
+          viewport = page.getViewport(scale);
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;          
+          page.render({canvasContext: canvas.getContext('2d'), viewport: viewport});
+    });
+    }
+</script>
 
-        function render() {
-            myState.pdf.then((page) => {
-         
-                var canvas = document.getElementById("pdf_renderer");
-                var ctx = canvas.getContext('2d');
-     
-                var viewport = page.getViewport(myState.zoom);
-
-                canvas.width = 100;
-                canvas.height = 100;
-         
-                page.render({
-                    canvasContext: ctx,
-                    viewport: viewport
-                });
-            });
-        }
-    </script>
+<div id='pdf-viewer'></div>
 </body>
 </html>
